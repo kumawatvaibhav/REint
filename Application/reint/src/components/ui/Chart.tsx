@@ -9,10 +9,12 @@ import {
     Title,
     Tooltip,
     Legend,
-    TimeScale
+    TimeScale,
+    Filler,
+    type ChartOptions,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-// import 'chartjs-adapter-date-fns';
+import 'chartjs-adapter-date-fns';
 import { enGB } from 'date-fns/locale';
 
 ChartJS.register(
@@ -23,7 +25,8 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    TimeScale
+    TimeScale,
+    Filler
 );
 
 interface ChartProps {
@@ -39,7 +42,7 @@ type WindDataPoint = {
 
 export function WindChart({ actuals, forecasts, isLoading }: ChartProps) {
 
-    const options = {
+    const options: ChartOptions<'line'> = {
         responsive: true,
         maintainAspectRatio: false,
         interaction: {
@@ -51,20 +54,27 @@ export function WindChart({ actuals, forecasts, isLoading }: ChartProps) {
                 display: false,
             },
             tooltip: {
-                backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                backgroundColor: 'rgba(16, 35, 56, 0.95)',
                 titleFont: {
-                    family: "'Inter', sans-serif",
+                    family: "'Space Grotesk', 'Segoe UI', sans-serif",
                     size: 13,
                 },
                 bodyFont: {
-                    family: "'Inter', sans-serif",
+                    family: "'Space Grotesk', 'Segoe UI', sans-serif",
                     size: 13,
                 },
                 padding: 12,
-                cornerRadius: 8,
+                cornerRadius: 10,
                 displayColors: true,
-                borderColor: 'rgba(148, 163, 184, 0.35)',
+                borderColor: 'rgba(224, 234, 245, 0.4)',
                 borderWidth: 1,
+                callbacks: {
+                    label: (context) => {
+                        const value = Number(context.parsed.y);
+                        if (Number.isNaN(value)) return context.dataset.label ?? '';
+                        return `${context.dataset.label}: ${Math.round(value).toLocaleString('en-GB')} MW`;
+                    },
+                },
             },
         },
         scales: {
@@ -73,7 +83,7 @@ export function WindChart({ actuals, forecasts, isLoading }: ChartProps) {
                 time: {
                     unit: 'hour' as const,
                     displayFormats: {
-                        hour: 'HH:mm\ndd/MM/yy'
+                        hour: 'HH:mm\ndd/MM'
                     },
                     tooltipFormat: 'PPpp',
                 },
@@ -83,43 +93,43 @@ export function WindChart({ actuals, forecasts, isLoading }: ChartProps) {
                     },
                 },
                 grid: {
-                    color: 'rgba(148, 163, 184, 0.18)',
-                    drawBorder: false,
+                    color: 'rgba(34, 65, 95, 0.14)',
+                    drawTicks: false,
                 },
                 ticks: {
                     font: {
-                        family: "'Inter', sans-serif",
+                        family: "'IBM Plex Mono', 'Consolas', monospace",
                         size: 12,
                     },
-                    color: '#4B5563',
+                    color: '#35516A',
                     maxRotation: 0,
                     autoSkip: true,
                     maxTicksLimit: 8,
                 },
                 title: {
                     display: true,
-                    text: 'Target Time End (UTC)',
+                    text: 'Target time end (UTC)',
                     font: {
-                        family: "'Inter', sans-serif",
+                        family: "'Space Grotesk', 'Segoe UI', sans-serif",
                         size: 14,
                         weight: 500 as const,
                     },
-                    color: '#374151',
+                    color: '#1F3F76',
                     padding: { top: 10, bottom: 0 }
                 }
             },
             y: {
                 beginAtZero: false,
                 grid: {
-                    color: 'rgba(148, 163, 184, 0.18)',
-                    drawBorder: false,
+                    color: 'rgba(34, 65, 95, 0.14)',
+                    drawTicks: false,
                 },
                 ticks: {
                     font: {
-                        family: "'Inter', sans-serif",
+                        family: "'IBM Plex Mono', 'Consolas', monospace",
                         size: 12,
                     },
-                    color: '#4B5563',
+                    color: '#35516A',
                     callback: function (value: string | number) {
                         const numericValue = typeof value === 'string' ? Number(value) : value;
                         if (Number.isNaN(numericValue)) return value;
@@ -131,59 +141,63 @@ export function WindChart({ actuals, forecasts, isLoading }: ChartProps) {
                     display: true,
                     text: 'Power (MW)',
                     font: {
-                        family: "'Inter', sans-serif",
+                        family: "'Space Grotesk', 'Segoe UI', sans-serif",
                         size: 14,
                         weight: 500 as const,
                     },
-                    color: '#374151',
+                    color: '#1F3F76',
                     padding: { top: 0, bottom: 10 }
                 }
             },
         },
         elements: {
             line: {
-                tension: 0.4, // Smooth curves
+                tension: 0.34,
             },
             point: {
                 radius: 0,
                 hitRadius: 10,
                 hoverRadius: 5,
             }
-        }
+        },
+        animation: {
+            duration: 620,
+            easing: 'easeOutQuart',
+        },
     };
 
     const data = {
         datasets: [
             {
-                label: 'Actual Wind Generation',
+                label: 'Actual generation',
                 data: actuals.map(d => ({ x: new Date(d.startTime), y: d.generation })),
-                borderColor: '#16a34a', // Green 600
-                backgroundColor: '#16a34a',
-                borderWidth: 2.5,
-                pointBackgroundColor: '#16a34a',
-                fill: false,
-                tension: 0.25,
+                borderColor: '#ff7a32',
+                backgroundColor: 'rgba(255, 122, 50, 0.16)',
+                borderWidth: 2.7,
+                pointBackgroundColor: '#ff7a32',
+                fill: 'origin',
+                tension: 0.3,
             },
             {
-                label: 'Forecast Wind Generation',
+                label: 'Forecast generation',
                 data: forecasts.map(d => ({ x: new Date(d.startTime), y: d.generation })),
-                borderColor: '#2563eb', // Blue 600
-                backgroundColor: '#2563eb',
-                borderWidth: 2.5,
-                borderDash: [5, 5],
-                pointBackgroundColor: '#2563eb',
-                fill: false,
-                tension: 0.25,
+                borderColor: '#0f7b9f',
+                backgroundColor: 'rgba(15, 123, 159, 0.14)',
+                borderWidth: 2.7,
+                borderDash: [8, 6],
+                pointBackgroundColor: '#0f7b9f',
+                fill: 'origin',
+                tension: 0.3,
             },
         ],
     };
 
     if (isLoading) {
         return (
-            <div className="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
-                <div className="flex flex-col items-center space-y-4">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-                    <p className="animate-pulse text-sm font-medium text-slate-500">Loading generation data...</p>
+            <div className="flex h-full w-full items-center justify-center rounded-xl border border-[var(--line-soft)] bg-[linear-gradient(145deg,rgba(255,255,255,0.95),rgba(255,246,237,0.86))]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-[rgba(255,122,50,0.35)] border-t-[var(--sun)]" />
+                    <p className="text-sm font-medium text-[var(--ink-500)]">Rendering generation curves</p>
                 </div>
             </div>
         );
@@ -191,17 +205,17 @@ export function WindChart({ actuals, forecasts, isLoading }: ChartProps) {
 
     if (actuals.length === 0 && forecasts.length === 0) {
         return (
-            <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-white">
+            <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-[var(--line-strong)] bg-[linear-gradient(145deg,rgba(255,255,255,0.95),rgba(236,244,255,0.84))]">
                 <div className="text-center">
-                    <p className="text-sm font-semibold text-slate-600">No data available</p>
-                    <p className="mt-1 text-xs text-slate-500">Try a different date range or horizon.</p>
+                    <p className="text-sm font-semibold text-[var(--ink-700)]">No timeline loaded</p>
+                    <p className="mt-1 text-xs text-[var(--ink-500)]">Choose another range or horizon to populate the graph.</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="h-full w-full rounded-xl border border-slate-100 bg-white p-2 shadow-inner sm:p-4 transition-all duration-200">
+        <div className="h-full w-full rounded-xl border border-[var(--line-soft)] bg-white/88 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] sm:p-4 transition-all duration-300">
             <Line options={options} data={data} className="!h-full !w-full" />
         </div>
     );
