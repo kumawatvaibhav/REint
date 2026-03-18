@@ -2,7 +2,7 @@ import { link } from 'fs'
 import Link from 'next/link'
 
 const PROFILE_LINKS = {
-    github: 'https://github.com/kumawatvaibhav',
+    github: 'https://github.com/kumawatvaibhav/REint',
     leetcode: 'https://leetcode.com/u/Vaibhav743/',
     resume: 'https://drive.google.com/file/d/1WF37PfWkswr2IrD_ZppkepQ75tt0VwZ3/view?usp=sharing',
     linkedin: 'https://www.linkedin.com/in/vaibhav-kumawatt',
